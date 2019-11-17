@@ -1,0 +1,40 @@
+service: PhotoService
+
+frameworkVersion: ">=1.10.0"
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  memorySize: 128
+  timeout: 6
+  stage: dev
+  region: us-east-1
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource:
+        - "arn:aws:s3:::krokicki-photos"
+        - "arn:aws:s3:::krokicki-photos/*"
+        - "arn:aws:s3:::krokicki-photos-medium"
+        - "arn:aws:s3:::krokicki-photos-medium/*"
+    - Effect: Allow
+      Action:
+        - "s3:ListAllMyBuckets"
+        - "s3:GetBucketLocation"
+      Resource: "*"
+
+functions:
+  ResizeImage:
+    handler: index.handler
+    #events:
+    #  - s3:
+    #      bucket: krokicki-photos
+    #      existing: true
+    #      event: s3:ObjectCreated:*
+    #      rules: 
+    #        - suffix: .jpg
+
+
+

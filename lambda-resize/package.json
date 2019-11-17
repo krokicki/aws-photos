@@ -10,6 +10,7 @@
     "sharp": "^0.17.3"
   },
   "devDependencies": {
-    "aws-sdk": "^2.36.0"
+    "aws-sdk": "^2.573.0",
+    "eslint": "^6.6.0"
   }
 }

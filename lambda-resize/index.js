@@ -1,40 +1,39 @@
-console.log('Loading function');
+"use strict";
+
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const sharp = require('sharp');
-const width = 200;
-const height = 200;
+const width = 400;
+const height = 300;
 const targetBucket = "krokicki-photos-medium";
 
-exports.handler = async (event, context) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+exports.handler = function(event, context, callback) {
 
-    // Get the object from the event and show its content type
+    console.log('Received event:', JSON.stringify(event, null, 2));
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-    try {
-        const originalImage = await s3.getObject({ Bucket: bucket, Key: key}).promise()
-        const buffer = Sharp(originalImage.Body)
+    
+    s3.getObject({ Bucket: bucket, Key: key}).promise()
+        .then(data => sharp(data.Body)
             .resize(width, height)
-            .toFormat('jpg')
+            .jpeg()
             .toBuffer()
-        console.log("Resized image to "+width+"x"+height)
-        s3.putObject({
-            Body: buffer,
-            Bucket: targetBucket,
-            ContentType: 'image/jpeg',
-            Key: key
+        )
+        .then(buffer => s3.putObject({
+                Body: buffer,
+                Bucket: targetBucket,
+                ContentType: 'image/jpeg',
+                Key: key
+            }).promise()
+        )
+        .then(() => {
+            console.log('Resized into ', targetBucket);
+            callback(null, { statusCode: '204' });
         })
-        console.log("Saved resized image")
-        return true;
-        
-    } 
-    catch (err) {
-        console.log(err);
-        const message = `Error getting object ${key} from bucket ${bucket}. Make sure they exist and your bucket is in the same region as this function.`;
-        console.log(message);
-        throw new Error(message);
-    }
-};
+        .catch(err => {
+            console.log('Error: ', err);
+            callback(err);
+        })
 
-
+    return true;
+}
