@@ -1,5 +1,9 @@
 service: PhotoService
 
+custom:
+  inputBucket: krokicki-photo-input
+  outputBucket: krokicki-photo-output
+
 frameworkVersion: ">=1.10.0"
 
 provider:
@@ -13,28 +17,31 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - s3:*
-      Resource:
-        - "arn:aws:s3:::krokicki-photos"
-        - "arn:aws:s3:::krokicki-photos/*"
-        - "arn:aws:s3:::krokicki-photos-medium"
-        - "arn:aws:s3:::krokicki-photos-medium/*"
+        - s3:PutObject
+        - s3:PutObjectAcl
+      Resource: "arn:aws:s3:::${self:custom.outputBucket}/*"
     - Effect: Allow
       Action:
-        - "s3:ListAllMyBuckets"
-        - "s3:GetBucketLocation"
-      Resource: "*"
+        - s3:GetObject
+        - s3:GetObjectAcl
+      Resource: "arn:aws:s3:::${self:custom.inputBucket}/*"
 
 functions:
   ResizeImage:
     handler: index.handler
-    #events:
-    #  - s3:
-    #      bucket: krokicki-photos
-    #      existing: true
-    #      event: s3:ObjectCreated:*
-    #      rules: 
-    #        - suffix: .jpg
+    environment:
+      OUTPUT_BUCKET: ${self:custom.outputBucket}
+    events:
+      - s3:
+          bucket: ${self:custom.inputBucket}
+          event: s3:ObjectCreated:*
+          rules: 
+            - suffix: .jpg
 
-
+resources:
+  Resources:
+    S3BucketOutputs:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.outputBucket}
 
