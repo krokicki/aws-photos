@@ -31,6 +31,8 @@ functions:
     handler: index.handler
     environment:
       OUTPUT_BUCKET: ${self:custom.outputBucket}
+      OUTPUT_WIDTH: 400
+      OUTPUT_HEIGHT: 300
     events:
       - s3:
           bucket: ${self:custom.inputBucket}
