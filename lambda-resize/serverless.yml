@@ -19,6 +19,7 @@ provider:
       Action:
         - s3:PutObject
         - s3:PutObjectAcl
+        - s3:DeleteObject
       Resource: "arn:aws:s3:::${self:custom.outputBucket}/*"
     - Effect: Allow
       Action:
@@ -28,7 +29,7 @@ provider:
 
 functions:
   ResizeImage:
-    handler: index.handler
+    handler: resize.handler
     environment:
       OUTPUT_BUCKET: ${self:custom.outputBucket}
       OUTPUT_WIDTH: 400
@@ -40,8 +41,25 @@ functions:
           rules: 
             - suffix: .jpg
 
+  Cleanup:
+    handler: cleanup.handler
+    environment:
+      OUTPUT_BUCKET: ${self:custom.outputBucket}
+    events:
+      - s3:
+          bucket: ${self:custom.inputBucket}
+          event: s3:ObjectRemoved:*
+          rules: 
+            - suffix: .jpg
+
 resources:
+
   Resources:
+#    S3BucketInputs:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: ${self:custom.inputBucket}
+
     S3BucketOutputs:
       Type: AWS::S3::Bucket
       Properties:

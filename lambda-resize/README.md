@@ -12,3 +12,8 @@ docker run --rm -v "$PWD":/build lambci/lambda:build-nodejs10.x /build/build.sh
 serverless deploy function -f ResizeImage
 ```
 
+Watch logs:
+```
+serverless logs -f ResizeImage -t
+```
+
